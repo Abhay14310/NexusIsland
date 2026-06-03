@@ -2201,17 +2201,18 @@ canvas {
   height: 100%;
 }
 #bg {
-  height: 550px;
+  height: 100vh;
   width: 100vw;
   overflow: hidden;
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
+  z-index: -1;
 }
 #hero {
-  height: 450px;
-  margin-top: 100px;
+  min-height: 100vh;
+  padding-top: 140px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -2315,13 +2316,18 @@ body {
   background: var(--bg);
 } */
 
-ul {
+/* ===== Animated social icon list (footer only) ===== */
+#ulfooter {
   position: relative;
   display: flex;
+  flex-direction: row;
   gap: 50px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
 }
 
-ul li {
+#ulfooter li {
   position: relative;
   list-style: none;
   width: 80px;
@@ -2333,7 +2339,7 @@ ul li {
   transition: 0.5s;
 }
 
-ul li::before {
+#ulfooter li::before {
   content: "";
   position: absolute;
   inset: 30px;
@@ -2344,11 +2350,11 @@ ul li::before {
   transition: 0.5s;
 }
 
-ul li:hover::before {
+#ulfooter li:hover::before {
   inset: 15px;
 }
 
-ul li::after {
+#ulfooter li::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -2357,12 +2363,12 @@ ul li::after {
   transition: 0.5s;
 }
 
-ul li:hover::after {
+#ulfooter li:hover::after {
   inset: 0px;
   transform: rotate(0deg);
 }
 
-ul li a {
+#ulfooter li a {
   position: relative;
   text-decoration: none;
   z-index: 10;
@@ -2371,19 +2377,19 @@ ul li a {
   align-items: center;
 }
 
-ul li a i {
+#ulfooter li a i {
   font-size: 1em;
   transition: 0.5s;
   color: var(--clr);
   opacity: 1;
 }
 
-ul li:hover a i {
+#ulfooter li:hover a i {
   color: var(--clr);
   transform: translateY(-40%);
 }
 
-ul li a span {
+#ulfooter li a span {
   position: absolute;
   font-family: sans-serif;
   color: var(--clr);
@@ -2392,21 +2398,58 @@ ul li a span {
   transform: scale(0) translateY(200%);
 }
 
-ul li:hover a span {
+#ulfooter li:hover a span {
   opacity: 1;
   transform: scale(1) translateY(100%);
 }
 
-ul li:hover a i,
-ul li a span {
+#ulfooter li:hover a i,
+#ulfooter li a span {
   filter: drop-shadow(0 0 20px var(--clr)) drop-shadow(0 0 40px var(--clr))
     drop-shadow(0 0 60px var(--clr));
 }
+
+/* ===== Nav links override: reset any global ul damage ===== */
+.nav-links li {
+  width: auto !important;
+  height: auto !important;
+  display: flex !important;
+  align-items: center !important;
+}
+.nav-links li::before,
+.nav-links li::after {
+  display: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  transform: none !important;
+}
+.nav-links li a {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 4px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 13px;
+  padding: 6px 12px;
+  transition: color 0.2s;
+}
+.nav-links li a:hover {
+  color: var(--clr, #9147ff);
+}
+.nav-links li a i {
+  font-size: 1.1em;
+  color: inherit;
+  transform: none !important;
+}
+.nav-links li a span {
+  position: static !important;
+  opacity: 1 !important;
+  transform: none !important;
+  font-size: 12px;
+  filter: none !important;
+}
+
 #sizeoficons {
   font-size: 3.5em;
-}
-#ulfooter{
-  display: flex;
-  flex-direction: row;
-
 }

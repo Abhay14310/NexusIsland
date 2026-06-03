@@ -40,20 +40,9 @@ var uSpeed = 0.001;
 
 //----------------------------------------------------------------- FOG background
 
-// Load skybox texture
-var skyboxTexture = new THREE.CubeTextureLoader()
-  .setPath("textures/skybox/")
-  .load([
-    "skybox_px.jpg",
-    "skybox_nx.jpg",
-    "skybox_py.jpg",
-    "skybox_ny.jpg",
-    "skybox_pz.jpg",
-    "skybox_nz.jpg",
-  ]);
-
-// Set skybox background
-scene.background = skyboxTexture;
+// Set solid dark background - no external skybox textures needed
+scene.background = new THREE.Color(0x01030a);
+scene.fog = new THREE.FogExp2(0x01030a, 0.02);
 
 //----------------------------------------------------------------- RANDOM Function
 function mathRandom(num = 8) {
@@ -79,7 +68,7 @@ function setTintColor() {
 function init() {
   var segments = 2;
   for (var i = 1; i < 100; i++) {
-    var geometry = new THREE.CubeGeometry(
+    var geometry = new THREE.BoxGeometry(
       1,
       0,
       0,
@@ -161,10 +150,10 @@ function init() {
     smoke.add(particular);
   }
 
-  var pmaterial = new THREE.MeshPhongMaterial({
+  var pmaterial = new THREE.MeshStandardMaterial({
     color: 0x000000,
     side: THREE.DoubleSide,
-    roughness: 10,
+    roughness: 0.9,
     metalness: 0.6,
     opacity: 0.9,
     transparent: true,
@@ -247,7 +236,7 @@ var createCars = function (cScale = 2, cPos = 20, cColor = 0x83e5de) {
     color: cColor,
     side: THREE.DoubleSide,
   });
-  var cGeo = new THREE.CubeGeometry(1, cScale / 40, cScale / 40);
+  var cGeo = new THREE.BoxGeometry(1, cScale / 40, cScale / 40);
   var cElem = new THREE.Mesh(cGeo, cMat);
   var cAmp = 3;
 
