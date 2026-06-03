@@ -1,19 +1,25 @@
 // Three JS Template
 //----------------------------------------------------------------- BASIC parameters
-var renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
+var renderer, camera, scene, city, smoke, town;
+var createCarPos = true;
+var uSpeed = 0.001;
 
-if (window.innerWidth > 800) {
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.shadowMap.needsUpdate = true;
-  //renderer.toneMapping = THREE.ReinhardToneMapping;
-  //console.log(window.innerWidth);
+try {
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  if (window.innerWidth > 800) {
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.needsUpdate = true;
+  }
+
+  var bgEl = document.getElementById("bg");
+  if (bgEl) bgEl.appendChild(renderer.domElement);
+
+} catch(e) {
+  console.warn("Three.js WebGL init failed:", e);
 }
-//---
-
-document.getElementById("bg").appendChild(renderer.domElement);
-
 window.addEventListener("resize", onWindowResize, false);
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -34,9 +40,6 @@ var scene = new THREE.Scene();
 var city = new THREE.Object3D();
 var smoke = new THREE.Object3D();
 var town = new THREE.Object3D();
-
-var createCarPos = true;
-var uSpeed = 0.001;
 
 //----------------------------------------------------------------- FOG background
 
@@ -79,12 +82,6 @@ function init() {
     var material = new THREE.MeshStandardMaterial({
       color: setTintColor(),
       wireframe: false,
-      //opacity:0.9,
-      //transparent:true,
-      //roughness: 0.3,
-      //metalness: 1,
-      shading: THREE.SmoothShading,
-      //shading:THREE.FlatShading,
       side: THREE.DoubleSide,
     });
     var wmaterial = new THREE.MeshLambertMaterial({
@@ -315,6 +312,8 @@ var animate = function () {
 };
 
 //----------------------------------------------------------------- START functions
-generateLines();
-init();
-animate();
+if (renderer) {
+  generateLines();
+  init();
+  animate();
+}
