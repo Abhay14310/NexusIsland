@@ -1,0 +1,12 @@
+{
+  "name": "esport-nexus",
+  "version": "1.0.0",
+  "description": "Esports Nexus - Connecting Gamers, Tournaments And Gear",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'No build needed for static site'"
+  },
+  "keywords": ["esports", "gaming", "tournaments"],
+  "author": "Abhay Kapoor",
+  "license": "MIT"
+}
