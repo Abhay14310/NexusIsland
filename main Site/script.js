@@ -1,319 +1,196 @@
-// Three JS Template
-//----------------------------------------------------------------- BASIC parameters
-var renderer, camera, scene, city, smoke, town;
-var createCarPos = true;
-var uSpeed = 0.001;
+// Three JS - City Background Animation
+// Everything is inside window.onload + try-catch so it NEVER crashes the page
 
-try {
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
+window.addEventListener('load', function () {
 
-  if (window.innerWidth > 800) {
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.shadowMap.needsUpdate = true;
+  if (typeof THREE === 'undefined') {
+    console.warn('Three.js not loaded — skipping 3D background.');
+    return;
   }
 
-  var bgEl = document.getElementById("bg");
-  if (bgEl) bgEl.appendChild(renderer.domElement);
+  try {
+    //--------------------------------------------------------------- RENDERER
+    var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    if (window.innerWidth > 800) {
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    }
+    var bgEl = document.getElementById('bg');
+    if (!bgEl) return;
+    bgEl.appendChild(renderer.domElement);
 
-} catch(e) {
-  console.warn("Three.js WebGL init failed:", e);
-}
-window.addEventListener("resize", onWindowResize, false);
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-}
+    //--------------------------------------------------------------- SCENE
+    var scene  = new THREE.Scene();
+    var city   = new THREE.Object3D();
+    var smoke  = new THREE.Object3D();
+    var town   = new THREE.Object3D();
+    var mouse  = new THREE.Vector2();
+    var createCarPos = true;
+    var uSpeed = 0.001;
 
-var camera = new THREE.PerspectiveCamera(
-  20,
-  window.innerWidth / window.innerHeight,
-  1,
-  500
-);
+    scene.background = new THREE.Color(0x01030a);
+    scene.fog = new THREE.FogExp2(0x01030a, 0.02);
 
-camera.position.set(0, 2, 14);
+    //--------------------------------------------------------------- CAMERA
+    var camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 1, 500);
+    camera.position.set(0, 2, 14);
 
-var scene = new THREE.Scene();
-var city = new THREE.Object3D();
-var smoke = new THREE.Object3D();
-var town = new THREE.Object3D();
-
-//----------------------------------------------------------------- FOG background
-
-// Set solid dark background - no external skybox textures needed
-scene.background = new THREE.Color(0x01030a);
-scene.fog = new THREE.FogExp2(0x01030a, 0.02);
-
-//----------------------------------------------------------------- RANDOM Function
-function mathRandom(num = 8) {
-  var numValue = -Math.random() * num + Math.random() * num;
-  return numValue;
-}
-//----------------------------------------------------------------- CHANGE building colors
-var setTintNum = true;
-function setTintColor() {
-  if (setTintNum) {
-    setTintNum = false;
-    var setColor = 0x000000;
-  } else {
-    setTintNum = true;
-    var setColor = 0x000000;
-  }
-  //setColor = 0x222222;
-  return setColor;
-}
-
-//----------------------------------------------------------------- CREATE City
-
-function init() {
-  var segments = 2;
-  for (var i = 1; i < 100; i++) {
-    var geometry = new THREE.BoxGeometry(
-      1,
-      0,
-      0,
-      segments,
-      segments,
-      segments
-    );
-    var material = new THREE.MeshStandardMaterial({
-      color: setTintColor(),
-      wireframe: false,
-      side: THREE.DoubleSide,
-    });
-    var wmaterial = new THREE.MeshLambertMaterial({
-      color: 0xffffff,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.03,
-      side: THREE.DoubleSide /*,
-      shading:THREE.FlatShading*/,
+    //--------------------------------------------------------------- RESIZE
+    window.addEventListener('resize', function () {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    var cube = new THREE.Mesh(geometry, material);
-    var wire = new THREE.Mesh(geometry, wmaterial);
-    var floor = new THREE.Mesh(geometry, material);
-    var wfloor = new THREE.Mesh(geometry, wmaterial);
-
-    cube.add(wfloor);
-    cube.castShadow = true;
-    cube.receiveShadow = true;
-    cube.rotationValue = 0.1 + Math.abs(mathRandom(8));
-
-    //floor.scale.x = floor.scale.z = 1+mathRandom(0.33);
-    floor.scale.y = 0.05; //+mathRandom(0.5);
-    cube.scale.y = 0.1 + Math.abs(mathRandom(8));
-    //TweenMax.to(cube.scale, 1, {y:cube.rotationValue, repeat:-1, yoyo:true, delay:i*0.005, ease:Power1.easeInOut});
-    /*cube.setScale = 0.1+Math.abs(mathRandom());
-    
-    TweenMax.to(cube.scale, 4, {y:cube.setScale, ease:Elastic.easeInOut, delay:0.2*i, yoyo:true, repeat:-1});
-    TweenMax.to(cube.position, 4, {y:cube.setScale / 2, ease:Elastic.easeInOut, delay:0.2*i, yoyo:true, repeat:-1});*/
-
-    var cubeWidth = 0.9;
-    cube.scale.x = cube.scale.z = cubeWidth + mathRandom(1 - cubeWidth);
-    //cube.position.y = cube.scale.y / 2;
-    cube.position.x = Math.round(mathRandom());
-    cube.position.z = Math.round(mathRandom());
-
-    floor.position.set(
-      cube.position.x,
-      0 /*floor.scale.y / 2*/,
-      cube.position.z
-    );
-
-    town.add(floor);
-    town.add(cube);
-  }
-  //----------------------------------------------------------------- Particular
-
-  var gmaterial = new THREE.MeshToonMaterial({
-    color: 0xffff00,
-    side: THREE.DoubleSide,
-  });
-  var gparticular = new THREE.CircleGeometry(0.01, 3);
-  var aparticular = 5;
-
-  for (var h = 1; h < 300; h++) {
-    var particular = new THREE.Mesh(gparticular, gmaterial);
-    particular.position.set(
-      mathRandom(aparticular),
-      mathRandom(aparticular),
-      mathRandom(aparticular)
-    );
-    particular.rotation.set(mathRandom(), mathRandom(), mathRandom());
-    smoke.add(particular);
-  }
-
-  var pmaterial = new THREE.MeshStandardMaterial({
-    color: 0x000000,
-    side: THREE.DoubleSide,
-    roughness: 0.9,
-    metalness: 0.6,
-    opacity: 0.9,
-    transparent: true,
-  });
-  var pgeometry = new THREE.PlaneGeometry(60, 60);
-  var pelement = new THREE.Mesh(pgeometry, pmaterial);
-  pelement.rotation.x = (-90 * Math.PI) / 180;
-  pelement.position.y = -0.001;
-  pelement.receiveShadow = true;
-  //pelement.material.emissive.setHex(0xFFFFFF + Math.random() * 100000);
-
-  city.add(pelement);
-}
-
-//----------------------------------------------------------------- MOUSE function
-var raycaster = new THREE.Raycaster();
-var mouse = new THREE.Vector2(),
-  INTERSECTED;
-var intersected;
-
-function onMouseMove(event) {
-  event.preventDefault();
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-}
-function onDocumentTouchStart(event) {
-  if (event.touches.length == 1) {
-    event.preventDefault();
-    mouse.x = event.touches[0].pageX - window.innerWidth / 2;
-    mouse.y = event.touches[0].pageY - window.innerHeight / 2;
-  }
-}
-function onDocumentTouchMove(event) {
-  if (event.touches.length == 1) {
-    event.preventDefault();
-    mouse.x = event.touches[0].pageX - window.innerWidth / 2;
-    mouse.y = event.touches[0].pageY - window.innerHeight / 2;
-  }
-}
-window.addEventListener("mousemove", onMouseMove, false);
-window.addEventListener("touchstart", onDocumentTouchStart, false);
-window.addEventListener("touchmove", onDocumentTouchMove, false);
-
-//----------------------------------------------------------------- Lights
-var ambientLight = new THREE.AmbientLight(0xffffff, 2); // Increase ambient light intensity
-var lightFront = new THREE.SpotLight(0xffffff, 10, 20); // Adjust spot light parameters
-var lightBack = new THREE.PointLight(0xffffff, 1); // Increase point light intensity
-
-var spotLightHelper = new THREE.SpotLightHelper(lightFront);
-//scene.add( spotLightHelper );
-
-lightFront.rotation.x = (45 * Math.PI) / 180;
-lightFront.rotation.z = (-45 * Math.PI) / 180;
-lightFront.position.set(5, 5, 5);
-lightFront.castShadow = true;
-lightFront.shadow.mapSize.width = 6000;
-lightFront.shadow.mapSize.height = lightFront.shadow.mapSize.width;
-lightFront.penumbra = 0.1;
-lightBack.position.set(0, 6, 0);
-
-smoke.position.y = 2;
-
-scene.add(ambientLight);
-city.add(lightFront);
-scene.add(lightBack);
-scene.add(city);
-city.add(smoke);
-city.add(town);
-
-//----------------------------------------------------------------- GRID Helper
-var gridHelper = new THREE.GridHelper(60, 120, 0x83e5de, 0x000000);
-city.add(gridHelper);
-
-//----------------------------------------------------------------- CAR world
-var generateCar = function () {};
-//----------------------------------------------------------------- LINES world
-
-var createCars = function (cScale = 2, cPos = 20, cColor = 0x83e5de) {
-  var cMat = new THREE.MeshToonMaterial({
-    color: cColor,
-    side: THREE.DoubleSide,
-  });
-  var cGeo = new THREE.BoxGeometry(1, cScale / 40, cScale / 40);
-  var cElem = new THREE.Mesh(cGeo, cMat);
-  var cAmp = 3;
-
-  if (createCarPos) {
-    createCarPos = false;
-    cElem.position.x = -cPos;
-    cElem.position.z = mathRandom(cAmp);
-
-    TweenMax.to(cElem.position, 3, {
-      x: cPos,
-      repeat: -1,
-      yoyo: true,
-      delay: mathRandom(3),
+    //--------------------------------------------------------------- MOUSE
+    window.addEventListener('mousemove', function (e) {
+      mouse.x = (e.clientX / window.innerWidth)  *  2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) *  2 + 1;
     });
-  } else {
-    createCarPos = true;
-    cElem.position.x = mathRandom(cAmp);
-    cElem.position.z = -cPos;
-    cElem.rotation.y = (90 * Math.PI) / 180;
+    window.addEventListener('touchmove', function (e) {
+      if (e.touches.length === 1) {
+        mouse.x = e.touches[0].pageX - window.innerWidth  / 2;
+        mouse.y = e.touches[0].pageY - window.innerHeight / 2;
+      }
+    }, { passive: true });
 
-    TweenMax.to(cElem.position, 5, {
-      z: cPos,
-      repeat: -1,
-      yoyo: true,
-      delay: mathRandom(3),
-      ease: Power1.easeInOut,
-    });
+    //--------------------------------------------------------------- HELPERS
+    function mathRandom(num) {
+      num = num === undefined ? 8 : num;
+      return -Math.random() * num + Math.random() * num;
+    }
+
+    //--------------------------------------------------------------- LIGHTS
+    var ambientLight = new THREE.AmbientLight(0xffffff, 2);
+    var lightFront   = new THREE.SpotLight(0xffffff, 10, 20);
+    var lightBack    = new THREE.PointLight(0xffffff, 1);
+
+    lightFront.position.set(5, 5, 5);
+    lightFront.castShadow = true;
+    lightFront.shadow.mapSize.width  = 2048;
+    lightFront.shadow.mapSize.height = 2048;
+    lightFront.penumbra = 0.1;
+    lightBack.position.set(0, 6, 0);
+
+    scene.add(ambientLight);
+    city.add(lightFront);
+    scene.add(lightBack);
+    scene.add(city);
+    city.add(smoke);
+    city.add(town);
+    smoke.position.y = 2;
+
+    //--------------------------------------------------------------- GRID
+    var gridHelper = new THREE.GridHelper(60, 120, 0x83e5de, 0x000000);
+    city.add(gridHelper);
+
+    //--------------------------------------------------------------- CITY BLOCKS
+    function init() {
+      for (var i = 0; i < 100; i++) {
+        var geo = new THREE.BoxGeometry(1, 1, 1, 2, 2, 2);
+        var mat = new THREE.MeshStandardMaterial({ color: 0x000000, wireframe: false, side: THREE.DoubleSide });
+        var wmat = new THREE.MeshLambertMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.03, side: THREE.DoubleSide });
+
+        var cube  = new THREE.Mesh(geo, mat);
+        var wfloor = new THREE.Mesh(geo, wmat);
+        var floor  = new THREE.Mesh(geo, mat);
+
+        cube.add(wfloor);
+        cube.castShadow    = true;
+        cube.receiveShadow = true;
+        cube.rotationValue = 0.1 + Math.abs(mathRandom(8));
+        floor.scale.y      = 0.05;
+        cube.scale.y       = 0.1 + Math.abs(mathRandom(8));
+
+        var w = 0.9;
+        cube.scale.x = cube.scale.z = w + mathRandom(1 - w);
+        cube.position.x = Math.round(mathRandom());
+        cube.position.z = Math.round(mathRandom());
+        floor.position.set(cube.position.x, 0, cube.position.z);
+
+        town.add(floor);
+        town.add(cube);
+      }
+
+      // Particles
+      var pmat = new THREE.MeshStandardMaterial({ color: 0xffff00, side: THREE.DoubleSide });
+      var pgeo = new THREE.CircleGeometry(0.01, 3);
+      for (var h = 0; h < 300; h++) {
+        var p = new THREE.Mesh(pgeo, pmat);
+        p.position.set(mathRandom(5), mathRandom(5), mathRandom(5));
+        p.rotation.set(mathRandom(), mathRandom(), mathRandom());
+        smoke.add(p);
+      }
+
+      // Ground plane
+      var floorMat = new THREE.MeshStandardMaterial({ color: 0x000000, side: THREE.DoubleSide, roughness: 0.9, metalness: 0.6, opacity: 0.9, transparent: true });
+      var floorGeo = new THREE.PlaneGeometry(60, 60);
+      var floorMesh = new THREE.Mesh(floorGeo, floorMat);
+      floorMesh.rotation.x = -Math.PI / 2;
+      floorMesh.position.y = -0.001;
+      floorMesh.receiveShadow = true;
+      city.add(floorMesh);
+    }
+
+    //--------------------------------------------------------------- CARS / LINES
+    function createCars(cScale, cPos, cColor) {
+      cScale = cScale || 2;
+      cPos   = cPos   || 20;
+      cColor = cColor || 0x83e5de;
+
+      var cmat  = new THREE.MeshStandardMaterial({ color: cColor, side: THREE.DoubleSide });
+      var cgeo  = new THREE.BoxGeometry(1, cScale / 40, cScale / 40);
+      var celem = new THREE.Mesh(cgeo, cmat);
+
+      if (createCarPos) {
+        createCarPos   = false;
+        celem.position.x = -cPos;
+        celem.position.z = mathRandom(3);
+        if (typeof TweenMax !== 'undefined') {
+          TweenMax.to(celem.position, 3, { x: cPos, repeat: -1, yoyo: true, delay: mathRandom(3) });
+        }
+      } else {
+        createCarPos   = true;
+        celem.position.x = mathRandom(3);
+        celem.position.z = -cPos;
+        celem.rotation.y = Math.PI / 2;
+        if (typeof TweenMax !== 'undefined') {
+          TweenMax.to(celem.position, 5, { z: cPos, repeat: -1, yoyo: true, delay: mathRandom(3) });
+        }
+      }
+
+      celem.receiveShadow = true;
+      celem.castShadow    = true;
+      celem.position.y    = Math.abs(mathRandom(5));
+      city.add(celem);
+    }
+
+    function generateLines() {
+      for (var i = 0; i < 60; i++) createCars(0.1, 20);
+    }
+
+    //--------------------------------------------------------------- ANIMATE
+    function animate() {
+      requestAnimationFrame(animate);
+      city.rotation.y -= (mouse.x * 8 - camera.rotation.y) * uSpeed;
+      city.rotation.x -= (-(mouse.y * 2) - camera.rotation.x) * uSpeed;
+      if (city.rotation.x < -0.05) city.rotation.x = -0.05;
+      if (city.rotation.x >  1)    city.rotation.x =  1;
+      smoke.rotation.y += 0.01;
+      smoke.rotation.x += 0.01;
+      camera.lookAt(city.position);
+      renderer.render(scene, camera);
+    }
+
+    //--------------------------------------------------------------- START
+    generateLines();
+    init();
+    animate();
+
+  } catch (err) {
+    console.warn('Three.js scene failed to initialize:', err.message);
   }
-  cElem.receiveShadow = true;
-  cElem.castShadow = true;
-  cElem.position.y = Math.abs(mathRandom(5));
-  city.add(cElem);
-};
 
-var generateLines = function () {
-  for (var i = 0; i < 60; i++) {
-    createCars(0.1, 20);
-  }
-};
-
-//----------------------------------------------------------------- CAMERA position
-
-var cameraSet = function () {
-  createCars(0.1, 20, 0xffffff);
-  //TweenMax.to(camera.position, 1, {y:1+Math.random()*4, ease:Expo.easeInOut})
-};
-
-//----------------------------------------------------------------- ANIMATE
-
-var animate = function () {
-  var time = Date.now() * 0.00005;
-  requestAnimationFrame(animate);
-
-  city.rotation.y -= (mouse.x * 8 - camera.rotation.y) * uSpeed;
-  city.rotation.x -= (-(mouse.y * 2) - camera.rotation.x) * uSpeed;
-  if (city.rotation.x < -0.05) city.rotation.x = -0.05;
-  else if (city.rotation.x > 1) city.rotation.x = 1;
-  var cityRotation = Math.sin(Date.now() / 5000) * 13;
-  //city.rotation.x = cityRotation * Math.PI / 180;
-
-  //console.log(city.rotation.x);
-  //camera.position.y -= (-(mouse.y * 20) - camera.rotation.y) * uSpeed;;
-
-  for (let i = 0, l = town.children.length; i < l; i++) {
-    var object = town.children[i];
-    //object.scale.y = Math.sin(time*50) * object.rotationValue;
-    //object.rotation.y = (Math.sin((time/object.rotationValue) * Math.PI / 180) * 180);
-    //object.rotation.z = (Math.cos((time/object.rotationValue) * Math.PI / 180) * 180);
-  }
-
-  smoke.rotation.y += 0.01;
-  smoke.rotation.x += 0.01;
-
-  camera.lookAt(city.position);
-  renderer.render(scene, camera);
-};
-
-//----------------------------------------------------------------- START functions
-if (renderer) {
-  generateLines();
-  init();
-  animate();
-}
+});
