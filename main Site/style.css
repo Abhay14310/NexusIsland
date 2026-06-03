@@ -2398,6 +2398,20 @@ body {
   transform: scale(0) translateY(200%);
 }
 
+/* Custom Text Color Overrides for Visibility */
+.hero-title, 
+.section-wrapper h2, 
+h3, 
+.hero-text, 
+.article-description p, 
+.service p {
+  color: #ffffff !important;
+}
+
+.service p, .article-description p, .hero-text {
+  color: #e2e8f0 !important;
+}
+
 #ulfooter li:hover a span {
   opacity: 1;
   transform: scale(1) translateY(100%);
