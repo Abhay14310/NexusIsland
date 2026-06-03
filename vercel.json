@@ -1,7 +1,8 @@
 {
-  "buildCommand": "true",
+  "buildCommand": "echo 'Static site - no build needed'",
   "outputDirectory": "./",
-  "framework": "static",
+  "cleanUrls": true,
+  "trailingSlash": false,
   "routes": [
     {
       "src": "/(.*)",
